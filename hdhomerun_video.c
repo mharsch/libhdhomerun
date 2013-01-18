@@ -372,10 +372,10 @@ void hdhomerun_video_debug_print_stats(struct hdhomerun_video_sock_t *vs)
 	struct hdhomerun_video_stats_t stats;
 	hdhomerun_video_get_stats(vs, &stats);
 
-	hdhomerun_debug_printf(vs->dbg, "video sock: pkt=%lu net=%lu te=%lu miss=%lu drop=%lu\n",
-		(unsigned long)stats.packet_count, (unsigned long)stats.network_error_count,
-		(unsigned long)stats.transport_error_count, (unsigned long)stats.sequence_error_count,
-		(unsigned long)stats.overflow_error_count
+	hdhomerun_debug_printf(vs->dbg, "video sock: pkt=%u net=%u te=%u miss=%u drop=%u\n",
+		(unsigned int)stats.packet_count, (unsigned int)stats.network_error_count,
+		(unsigned int)stats.transport_error_count, (unsigned int)stats.sequence_error_count,
+		(unsigned int)stats.overflow_error_count
 	);
 }
 

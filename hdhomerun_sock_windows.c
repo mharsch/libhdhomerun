@@ -91,14 +91,13 @@ int hdhomerun_local_ip_info(struct hdhomerun_local_ip_info_t ip_info_list[], int
 				continue;
 			}
 
-			struct hdhomerun_local_ip_info_t *ip_info = &ip_info_list[count++];
-			ip_info->ip_addr = ip_addr;
-			ip_info->subnet_mask = subnet_mask;
-
-			if (count >= max_count) {
-				break;
+			if (count < max_count) {
+				struct hdhomerun_local_ip_info_t *ip_info = &ip_info_list[count];
+				ip_info->ip_addr = ip_addr;
+				ip_info->subnet_mask = subnet_mask;
 			}
 
+			count++;
 			IPAddr = IPAddr->Next;
 		}
 
