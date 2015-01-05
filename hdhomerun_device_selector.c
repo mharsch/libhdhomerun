@@ -347,19 +347,20 @@ static bool_t hdhomerun_device_selector_choose_test(struct hdhomerun_device_sele
 		return FALSE;
 	}
 
-	char *ptr = strstr(target, "//");
-	if (ptr) {
-		target = ptr + 2;
+	if (strcmp(target, "none") == 0) {
+		hdhomerun_debug_printf(hds->dbg, "hdhomerun_device_selector_choose_test: device %s in use, no target set\n", name);
+		return FALSE;
 	}
-	ptr = strchr(target, ' ');
-	if (ptr) {
-		*ptr = 0;
+
+	if ((strncmp(target, "udp://", 6) != 0) && (strncmp(target, "rtp://", 6) != 0)) {
+		hdhomerun_debug_printf(hds->dbg, "hdhomerun_device_selector_choose_test: device %s in use by %s\n", name, target);
+		return FALSE;
 	}
 
 	unsigned int a[4];
 	unsigned int target_port;
-	if (sscanf(target, "%u.%u.%u.%u:%u", &a[0], &a[1], &a[2], &a[3], &target_port) != 5) {
-		hdhomerun_debug_printf(hds->dbg, "hdhomerun_device_selector_choose_test: device %s in use, no target set (%s)\n", name, target);
+	if (sscanf(target + 6, "%u.%u.%u.%u:%u", &a[0], &a[1], &a[2], &a[3], &target_port) != 5) {
+		hdhomerun_debug_printf(hds->dbg, "hdhomerun_device_selector_choose_test: device %s in use, unexpected target set (%s)\n", name, target);
 		return FALSE;
 	}
 
