@@ -122,6 +122,126 @@ struct hdhomerun_device_t *hdhomerun_device_selector_find_device(struct hdhomeru
 	return NULL;
 }
 
+static int hdhomerun_device_selector_load_from_str_discover(struct hdhomerun_device_selector_t *hds, uint32_t target_ip, uint32_t device_id)
+{
+	struct hdhomerun_discover_device_t result_list[64];
+	int discover_count = hdhomerun_discover_find_devices_custom(target_ip, HDHOMERUN_DEVICE_TYPE_TUNER, device_id, result_list, 64);
+
+	int count = 0;
+	int result_index;
+	struct hdhomerun_discover_device_t *result = result_list;
+	for (result_index = 0; result_index < discover_count; result_index++) {
+		unsigned int tuner_index;
+		for (tuner_index = 0; tuner_index < result->tuner_count; tuner_index++) {
+			struct hdhomerun_device_t *hd = hdhomerun_device_create(result->device_id, result->ip_addr, tuner_index, hds->dbg);
+			if (!hd) {
+				continue;
+			}
+
+			hdhomerun_device_selector_add_device(hds, hd);
+			count++;
+		}
+
+		result++;
+	}
+
+	return count;
+}
+
+int hdhomerun_device_selector_load_from_str(struct hdhomerun_device_selector_t *hds, char *device_str)
+{
+	/*
+	 * IP address based device_str.
+	 */
+	unsigned int a[4];
+	if (sscanf(device_str, "%u.%u.%u.%u", &a[0], &a[1], &a[2], &a[3]) == 4) {
+		uint32_t ip_addr = (uint32_t)((a[0] << 24) | (a[1] << 16) | (a[2] << 8) | (a[3] << 0));
+
+		/*
+		 * Multicast IP address.
+		 */
+		unsigned int port;
+		if (sscanf(device_str, "%u.%u.%u.%u:%u", &a[0], &a[1], &a[2], &a[3], &port) == 5) {
+			struct hdhomerun_device_t *hd = hdhomerun_device_create_multicast(ip_addr, port, hds->dbg);
+			if (!hd) {
+				return 0;
+			}
+
+			hdhomerun_device_selector_add_device(hds, hd);
+			return 1;
+		}
+
+		/*
+		 * IP address + tuner number.
+		 */
+		unsigned int tuner;
+		if (sscanf(device_str, "%u.%u.%u.%u-%u", &a[0], &a[1], &a[2], &a[3], &tuner) == 5) {
+			struct hdhomerun_device_t *hd = hdhomerun_device_create(HDHOMERUN_DEVICE_ID_WILDCARD, ip_addr, tuner, hds->dbg);
+			if (!hd) {
+				return 0;
+			}
+
+			hdhomerun_device_selector_add_device(hds, hd);
+			return 1;
+		}
+
+		/*
+		 * IP address only - discover and add tuners.
+		 */
+		return hdhomerun_device_selector_load_from_str_discover(hds, ip_addr, HDHOMERUN_DEVICE_ID_WILDCARD);
+	}
+
+	/*
+	 * Device ID based device_str.
+	 */
+	char *end;
+	uint32_t device_id = (uint32_t)strtoul(device_str, &end, 16);
+	if ((end == device_str + 8) && hdhomerun_discover_validate_device_id(device_id)) {
+		/*
+		 * IP address + tuner number.
+		 */
+		if (*end == '-') {
+			unsigned int tuner = (unsigned int)strtoul(end + 1, NULL, 10);
+			struct hdhomerun_device_t *hd = hdhomerun_device_create(device_id, 0, tuner, hds->dbg);
+			if (!hd) {
+				return 0;
+			}
+
+			hdhomerun_device_selector_add_device(hds, hd);
+			return 1;
+		}
+
+		/*
+		 * Device ID only - discover and add tuners.
+		 */
+		return hdhomerun_device_selector_load_from_str_discover(hds, 0, device_id);
+	}
+
+	/*
+	* DNS based device_str.
+	*/
+	struct addrinfo hints;
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+
+	struct addrinfo *sock_info;
+	if (getaddrinfo(device_str, "65001", &hints, &sock_info) != 0) {
+		return 0;
+	}
+
+	struct sockaddr_in *sock_addr = (struct sockaddr_in *)sock_info->ai_addr;
+	uint32_t ip_addr = (uint32_t)ntohl(sock_addr->sin_addr.s_addr);
+	freeaddrinfo(sock_info);
+
+	if (ip_addr == 0) {
+		return 0;
+	}
+
+	return hdhomerun_device_selector_load_from_str_discover(hds, ip_addr, HDHOMERUN_DEVICE_ID_WILDCARD);
+}
+
 int hdhomerun_device_selector_load_from_file(struct hdhomerun_device_selector_t *hds, char *filename)
 {
 	FILE *fp = fopen(filename, "r");
@@ -129,22 +249,18 @@ int hdhomerun_device_selector_load_from_file(struct hdhomerun_device_selector_t 
 		return 0;
 	}
 
+	int count = 0;
 	while(1) {
-		char device_name[32];
-		if (!fgets(device_name, sizeof(device_name), fp)) {
+		char device_str[32];
+		if (!fgets(device_str, sizeof(device_str), fp)) {
 			break;
 		}
 
-		struct hdhomerun_device_t *hd = hdhomerun_device_create_from_str(device_name, hds->dbg);
-		if (!hd) {
-			continue;
-		}
-
-		hdhomerun_device_selector_add_device(hds, hd);
+		count += hdhomerun_device_selector_load_from_str(hds, device_str);
 	}
 
 	fclose(fp);
-	return (int)hds->hd_count;
+	return count;
 }
 
 #if defined(__WINDOWS__)
@@ -157,21 +273,22 @@ int hdhomerun_device_selector_load_from_windows_registry(struct hdhomerun_device
 		return 0;
 	}
 
+	int count = 0;
 	DWORD index = 0;
 	while (1) {
 		/* Next tuner device. */
-		wchar_t wdevice_name[32];
-		DWORD size = sizeof(wdevice_name);
-		ret = RegEnumKeyEx(tuners_key, index++, wdevice_name, &size, NULL, NULL, NULL, NULL);
+		wchar_t wdevice_str[32];
+		DWORD size = sizeof(wdevice_str);
+		ret = RegEnumKeyEx(tuners_key, index++, wdevice_str, &size, NULL, NULL, NULL, NULL);
 		if (ret != ERROR_SUCCESS) {
 			break;
 		}
 
 		/* Check device configuation. */
 		HKEY device_key;
-		ret = RegOpenKeyEx(tuners_key, wdevice_name, 0, KEY_QUERY_VALUE, &device_key);
+		ret = RegOpenKeyEx(tuners_key, wdevice_str, 0, KEY_QUERY_VALUE, &device_key);
 		if (ret != ERROR_SUCCESS) {
-			hdhomerun_debug_printf(hds->dbg, "hdhomerun_device_selector_load_from_windows_registry: failed to open registry key for %S (%ld)\n", wdevice_name, (long)ret);
+			hdhomerun_debug_printf(hds->dbg, "hdhomerun_device_selector_load_from_windows_registry: failed to open registry key for %S (%ld)\n", wdevice_str, (long)ret);
 			continue;
 		}
 
@@ -188,20 +305,13 @@ int hdhomerun_device_selector_load_from_windows_registry(struct hdhomerun_device
 		}
 
 		/* Create and add device. */
-		char device_name[32];
-		hdhomerun_sprintf(device_name, device_name + sizeof(device_name), "%S", wdevice_name);
-
-		struct hdhomerun_device_t *hd = hdhomerun_device_create_from_str(device_name, hds->dbg);
-		if (!hd) {
-			hdhomerun_debug_printf(hds->dbg, "hdhomerun_device_selector_load_from_windows_registry: invalid device name '%s' / failed to create device object\n", device_name);
-			continue;
-		}
-
-		hdhomerun_device_selector_add_device(hds, hd);
+		char device_str[32];
+		hdhomerun_sprintf(device_str, device_str + sizeof(device_str), "%S", wdevice_str);
+		count += hdhomerun_device_selector_load_from_str(hds, device_str);
 	}
 
 	RegCloseKey(tuners_key);
-	return (int)hds->hd_count;
+	return count;
 }
 #endif
 

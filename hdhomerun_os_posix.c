@@ -20,48 +20,52 @@
 
 #include "hdhomerun_os.h"
 
+#if defined(__APPLE__)
+#include "mach/clock.h"
+#endif
+
+static pthread_once_t random_get32_once = PTHREAD_ONCE_INIT;
+static FILE *random_get32_fp = NULL;
+
+static void random_get32_init(void)
+{
+	random_get32_fp = fopen("/dev/urandom", "rb");
+}
+
 uint32_t random_get32(void)
 {
-	FILE *fp = fopen("/dev/urandom", "rb");
-	if (!fp) {
+	pthread_once(&random_get32_once, random_get32_init);
+
+	if (!random_get32_fp) {
 		return (uint32_t)getcurrenttime();
 	}
 
 	uint32_t Result;
-	if (fread(&Result, 4, 1, fp) != 1) {
-		Result = (uint32_t)getcurrenttime();
+	if (fread(&Result, 4, 1, random_get32_fp) != 1) {
+		return (uint32_t)getcurrenttime();
 	}
 
-	fclose(fp);
 	return Result;
 }
 
 uint64_t getcurrenttime(void)
 {
-	static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-	static uint64_t result = 0;
-	static uint64_t previous_time = 0;
-
-	pthread_mutex_lock(&lock);
-
 #if defined(CLOCK_MONOTONIC)
-	struct timespec tp;
-	clock_gettime(CLOCK_MONOTONIC, &tp);
-	uint64_t current_time = ((uint64_t)tp.tv_sec * 1000) + (tp.tv_nsec / 1000000);
+	struct timespec t;
+	clock_gettime(CLOCK_MONOTONIC, &t);
+	return ((uint64_t)t.tv_sec * 1000) + (t.tv_nsec / 1000000);
+#elif defined(__APPLE__)
+	clock_serv_t clock_serv;
+	host_get_clock_service(mach_host_self(), SYSTEM_CLOCK, &clock_serv);
+
+	struct mach_timespec t;
+	clock_get_time(clock_serv, &t);
+
+	mach_port_deallocate(mach_task_self(), clock_serv);
+	return ((uint64_t)t.tv_sec * 1000) + (t.tv_nsec / 1000000);
 #else
-	struct timeval t;
-	gettimeofday(&t, NULL);
-	uint64_t current_time = ((uint64_t)t.tv_sec * 1000) + (t.tv_usec / 1000);
+#error no clock source for getcurrenttime()
 #endif
-
-	if (current_time > previous_time) {
-		result += current_time - previous_time;
-	}
-
-	previous_time = current_time;
-
-	pthread_mutex_unlock(&lock);
-	return result;
 }
 
 void msleep_approx(uint64_t ms)

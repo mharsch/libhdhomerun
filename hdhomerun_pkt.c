@@ -125,6 +125,12 @@ uint8_t *hdhomerun_pkt_read_tlv(struct hdhomerun_pkt_t *pkt, uint8_t *ptag, size
 	return pkt->pos + *plength;
 }
 
+void hdhomerun_pkt_read_mem(struct hdhomerun_pkt_t *pkt, void *mem, size_t length)
+{
+	memcpy(mem, pkt->pos, length);
+	pkt->pos += length;
+}
+
 void hdhomerun_pkt_write_u8(struct hdhomerun_pkt_t *pkt, uint8_t v)
 {
 	*pkt->pos++ = v;

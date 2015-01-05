@@ -151,6 +151,7 @@ extern LIBTYPE uint16_t hdhomerun_pkt_read_u16(struct hdhomerun_pkt_t *pkt);
 extern LIBTYPE uint32_t hdhomerun_pkt_read_u32(struct hdhomerun_pkt_t *pkt);
 extern LIBTYPE size_t hdhomerun_pkt_read_var_length(struct hdhomerun_pkt_t *pkt);
 extern LIBTYPE uint8_t *hdhomerun_pkt_read_tlv(struct hdhomerun_pkt_t *pkt, uint8_t *ptag, size_t *plength);
+extern LIBTYPE void hdhomerun_pkt_read_mem(struct hdhomerun_pkt_t *pkt, void *mem, size_t length);
 
 extern LIBTYPE void hdhomerun_pkt_write_u8(struct hdhomerun_pkt_t *pkt, uint8_t v);
 extern LIBTYPE void hdhomerun_pkt_write_u16(struct hdhomerun_pkt_t *pkt, uint16_t v);

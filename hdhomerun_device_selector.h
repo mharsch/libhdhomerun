@@ -39,6 +39,7 @@ extern LIBTYPE int hdhomerun_device_selector_get_device_count(struct hdhomerun_d
  * Populate device selector with devices from given source.
  * Returns the number of devices populated.
  */
+extern LIBTYPE int hdhomerun_device_selector_load_from_str(struct hdhomerun_device_selector_t *hds, char *device_str);
 extern LIBTYPE int hdhomerun_device_selector_load_from_file(struct hdhomerun_device_selector_t *hds, char *filename);
 #if defined(__WINDOWS__)
 extern LIBTYPE int hdhomerun_device_selector_load_from_windows_registry(struct hdhomerun_device_selector_t *hds, wchar_t *wsource);

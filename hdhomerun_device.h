@@ -64,6 +64,7 @@ extern "C" {
  *     /tuner<tuner index>
  */
 extern LIBTYPE struct hdhomerun_device_t *hdhomerun_device_create(uint32_t device_id, uint32_t device_ip, unsigned int tuner, struct hdhomerun_debug_t *dbg);
+extern LIBTYPE struct hdhomerun_device_t *hdhomerun_device_create_multicast(uint32_t multicast_ip, uint16_t multicast_port, struct hdhomerun_debug_t *dbg);
 extern LIBTYPE struct hdhomerun_device_t *hdhomerun_device_create_from_str(const char *device_str, struct hdhomerun_debug_t *dbg);
 extern LIBTYPE void hdhomerun_device_destroy(struct hdhomerun_device_t *hd);
 
@@ -78,6 +79,7 @@ extern LIBTYPE uint32_t hdhomerun_device_get_device_ip_requested(struct hdhomeru
 extern LIBTYPE unsigned int hdhomerun_device_get_tuner(struct hdhomerun_device_t *hd);
 
 extern LIBTYPE int hdhomerun_device_set_device(struct hdhomerun_device_t *hd, uint32_t device_id, uint32_t device_ip);
+extern LIBTYPE int hdhomerun_device_set_multicast(struct hdhomerun_device_t *hd, uint32_t multicast_ip, uint16_t multicast_port);
 extern LIBTYPE int hdhomerun_device_set_tuner(struct hdhomerun_device_t *hd, unsigned int tuner);
 extern LIBTYPE int hdhomerun_device_set_tuner_from_str(struct hdhomerun_device_t *hd, const char *tuner_str);
 

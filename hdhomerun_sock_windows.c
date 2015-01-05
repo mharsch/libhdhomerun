@@ -197,7 +197,7 @@ uint32_t hdhomerun_sock_getaddrinfo_addr(hdhomerun_sock_t sock, const char *name
 	hints.ai_protocol = IPPROTO_TCP;
 
 	struct addrinfo *sock_info;
-	if (getaddrinfo(name, "", &hints, &sock_info) != 0) {
+	if (getaddrinfo(name, NULL, &hints, &sock_info) != 0) {
 		return 0;
 	}
 
