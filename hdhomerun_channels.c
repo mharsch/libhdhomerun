@@ -77,6 +77,12 @@ static const struct hdhomerun_channelmap_range_t hdhomerun_channelmap_range_kr_c
 	{  0,   0,         0,       0}
 };
 
+/* JP antenna channels. */
+static const struct hdhomerun_channelmap_range_t hdhomerun_channelmap_range_jp_bcast[] = {
+	{ 13, 62, 473000000, 6000000},
+	{  0,  0,         0,       0}
+};
+
 /* US antenna channels. */
 static const struct hdhomerun_channelmap_range_t hdhomerun_channelmap_range_us_bcast[] = {
 	{  2,   4,  57000000, 6000000},
@@ -140,7 +146,8 @@ static const struct hdhomerun_channelmap_record_t hdhomerun_channelmap_table[] =
 	{"us-hrc",   hdhomerun_channelmap_range_us_hrc  , "us-cable us-hrc us-irc", NULL},
 	{"us-irc",   hdhomerun_channelmap_range_us_irc,   "us-cable us-hrc us-irc", NULL},
 
-	{NULL,       NULL,                                NULL,                     NULL}
+	{"jp-bcast", hdhomerun_channelmap_range_jp_bcast, "jp-bcast",               "JP" },
+	{ NULL, NULL, NULL, NULL }
 };
 
 const char *hdhomerun_channelmap_get_channelmap_from_country_source(const char *countrycode, const char *source, const char *supported)

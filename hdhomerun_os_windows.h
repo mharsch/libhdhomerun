@@ -53,7 +53,10 @@ typedef void (*sig_t)(int);
 typedef HANDLE pthread_t;
 typedef HANDLE pthread_mutex_t;
 
+#if !defined(va_copy)
 #define va_copy(x, y) x = y
+#endif
+
 #define atoll _atoi64
 #define strdup _strdup
 #define strcasecmp _stricmp
