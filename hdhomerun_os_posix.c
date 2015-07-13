@@ -21,7 +21,8 @@
 #include "hdhomerun_os.h"
 
 #if defined(__APPLE__)
-#include "mach/clock.h"
+#include <mach/clock.h>
+#include <mach/mach.h>
 #endif
 
 static pthread_once_t random_get32_once = PTHREAD_ONCE_INIT;

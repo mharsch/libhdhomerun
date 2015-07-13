@@ -774,16 +774,6 @@ int hdhomerun_device_get_ir_target(struct hdhomerun_device_t *hd, char **ptarget
 	return hdhomerun_control_get(hd->cs, "/ir/target", ptarget, NULL);
 }
 
-int hdhomerun_device_get_lineup_location(struct hdhomerun_device_t *hd, char **plocation)
-{
-	if (!hd->cs) {
-		hdhomerun_debug_printf(hd->dbg, "hdhomerun_device_get_lineup_location: device not set\n");
-		return -1;
-	}
-
-	return hdhomerun_control_get(hd->cs, "/lineup/location", plocation, NULL);
-}
-
 int hdhomerun_device_get_version(struct hdhomerun_device_t *hd, char **pversion_str, uint32_t *pversion_num)
 {
 	if (!hd->cs) {
@@ -1010,16 +1000,6 @@ int hdhomerun_device_set_ir_target(struct hdhomerun_device_t *hd, const char *ta
 	}
 
 	return hdhomerun_control_set(hd->cs, "/ir/target", target, NULL, NULL);
-}
-
-int hdhomerun_device_set_lineup_location(struct hdhomerun_device_t *hd, const char *location)
-{
-	if (!hd->cs) {
-		hdhomerun_debug_printf(hd->dbg, "hdhomerun_device_set_lineup_location: device not set\n");
-		return -1;
-	}
-
-	return hdhomerun_control_set(hd->cs, "/lineup/location", location, NULL, NULL);
 }
 
 int hdhomerun_device_set_sys_dvbc_modulation(struct hdhomerun_device_t *hd, const char *modulation_list)
