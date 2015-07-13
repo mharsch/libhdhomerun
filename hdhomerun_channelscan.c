@@ -157,6 +157,13 @@ static int channelscan_detect_programs(struct hdhomerun_channelscan_t *scan, str
 			continue;
 		}
 
+		unsigned int original_network_id;
+		if (sscanf(line, "onid=0x%x", &original_network_id) == 1) {
+			result->original_network_id = original_network_id;
+			result->original_network_id_detected = TRUE;
+			continue;
+		}
+
 		if (program_count >= HDHOMERUN_CHANNELSCAN_MAX_PROGRAM_COUNT) {
 			continue;
 		}

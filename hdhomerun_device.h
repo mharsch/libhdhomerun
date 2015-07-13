@@ -124,6 +124,7 @@ extern LIBTYPE uint32_t hdhomerun_device_get_tuner_status_ss_color(struct hdhome
 extern LIBTYPE uint32_t hdhomerun_device_get_tuner_status_snq_color(struct hdhomerun_tuner_status_t *status);
 extern LIBTYPE uint32_t hdhomerun_device_get_tuner_status_seq_color(struct hdhomerun_tuner_status_t *status);
 
+extern LIBTYPE const char *hdhomerun_device_get_hw_model_str(struct hdhomerun_device_t *hd);
 extern LIBTYPE const char *hdhomerun_device_get_model_str(struct hdhomerun_device_t *hd);
 
 /*

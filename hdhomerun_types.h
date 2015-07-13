@@ -69,7 +69,9 @@ struct hdhomerun_channelscan_result_t {
 	int program_count;
 	struct hdhomerun_channelscan_program_t programs[HDHOMERUN_CHANNELSCAN_MAX_PROGRAM_COUNT];
 	bool_t transport_stream_id_detected;
+	bool_t original_network_id_detected;
 	uint16_t transport_stream_id;
+	uint16_t original_network_id;
 };
 
 struct hdhomerun_plotsample_t {

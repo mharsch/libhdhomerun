@@ -1260,6 +1260,22 @@ uint8_t hdhomerun_device_channelscan_get_progress(struct hdhomerun_device_t *hd)
 	return channelscan_get_progress(hd->scan);
 }
 
+const char *hdhomerun_device_get_hw_model_str(struct hdhomerun_device_t *hd)
+{
+    if (!hd->cs) {
+        hdhomerun_debug_printf(hd->dbg, "hdhomerun_device_get_hw_model_str: device not set\n");
+        return NULL;
+    }
+
+    char *model_str;
+    int ret = hdhomerun_control_get(hd->cs, "/sys/hwmodel", &model_str, NULL);
+    if (ret < 0) {
+        return NULL;
+    }
+    return model_str;
+}
+
+
 const char *hdhomerun_device_get_model_str(struct hdhomerun_device_t *hd)
 {
 	if (*hd->model) {

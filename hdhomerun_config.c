@@ -311,6 +311,9 @@ static int cmd_scan(const char *tuner_str, const char *filename)
 		if (result.transport_stream_id_detected) {
 			cmd_scan_printf(fp, "TSID: 0x%04X\n", result.transport_stream_id);
 		}
+		if (result.original_network_id_detected) {
+			cmd_scan_printf(fp, "ONID: 0x%04X\n", result.original_network_id);
+		}
 
 		int i;
 		for (i = 0; i < result.program_count; i++) {
